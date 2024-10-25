@@ -296,7 +296,9 @@ function advectVSL(f :: Array{Complex{Float64}, 4},
         for j = 1:meshX.Nx2
             for k = meshV.Nx2
                 f_old_recons = Spline1D(meshV.x1, real(f[i, j, :, k]), k = 3)
-                f[i, j, :, k] .= f_old_recons(meshV.x1 .- E.x1[i, j] * delta_t)
+                for l = 1:meshV.Nx1
+                    f[i, j, l, k] = f_old_recons(meshV.x1[l] - (E.x1[i, j] * delta_t))
+                end
             end
         end
     end
@@ -305,7 +307,9 @@ function advectVSL(f :: Array{Complex{Float64}, 4},
         for j = 1:meshX.Nx2
             for k = meshV.Nx1
                 f_old_recons = Spline1D(meshV.x2, real(f[i, j, k, :]), k = 3)
-                f[i, j, k, :] .= f_old_recons(meshV.x2 .- E.x2[i, j] * delta_t)
+                for l = 1:meshV.Nx2
+                    f[i, j, k, l] = f_old_recons(meshV.x2[l] - (E.x2[i, j] * delta_t))
+                end
             end
         end
     end
@@ -399,6 +403,7 @@ function vlasovAmpereSolveFourier(f :: Array{Complex{Float64}, 4},
     
 end
 
+
 function vlasovAmpereSolveSL(f :: Array{Complex{Float64}, 4},
                              E :: ElectricField2D,
                              meshX :: UniformMesh2D,
@@ -427,6 +432,41 @@ function vlasovAmpereSolveSL(f :: Array{Complex{Float64}, 4},
         println("Time step ts=$(ts), ts+1 =$(ts+1)")
                         
         advectVSL2(f, E, meshX, meshV, 0.5*delta_t)
+               
+    end
+    return EnergyE, EnergyTotal
+    
+end
+
+
+function vlasovAmpereSolveSLSplit(f :: Array{Complex{Float64}, 4},
+                             E :: ElectricField2D,
+                             meshX :: UniformMesh2D,
+                             meshV :: UniformMesh2D,
+                             delta_t :: Float64,
+                             t_steps :: Int64)
+
+    EnergyE = zeros(Float64, t_steps + 1)
+    EnergyTotal = zeros(Float64, t_steps + 1)
+    
+    
+    rho = zeros(Complex{Float64}, meshX.Nx1, meshX.Nx2)
+    phi_hat = zeros(Complex{Float64}, meshX.Nx1, meshX.Nx2)
+
+    EnergyE[1] = computeElectricEnergy(E, meshX)
+    EnergyTotal[1] = EnergyE[1] + computeKineticEnergy(f, meshX, meshV)
+    
+    for ts in 1:t_steps
+        
+        advectVSL(f, E, meshX, meshV, 0.5*delta_t)
+        
+        advectX(f, E, meshX, meshV, delta_t, rho, phi_hat)
+
+        EnergyE[ts+1] = computeElectricEnergy(E, meshX)
+        EnergyTotal[ts+1] = EnergyE[ts+1] + computeKineticEnergy(f, meshX, meshV)
+        println("Time step ts=$(ts), ts+1 =$(ts+1)")
+                        
+        advectVSL(f, E, meshX, meshV, 0.5*delta_t)
                
     end
     return EnergyE, EnergyTotal

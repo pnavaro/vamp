@@ -48,7 +48,7 @@ phi_hat = initPhiHat(meshX, rho)
 
 E = initE(meshX, phi_hat)
 delta_t = t_max/t_steps
-
+#@time EE, ET = vlasovAmpereSolveSLSplit(f, E, meshX, meshV, delta_t, t_steps)
 @time EE, ET = vlasovAmpereSolveSL(f, E, meshX, meshV, delta_t, t_steps)
 #@time EE, ET = vlasovAmpereSolveFourier(f, E, meshX, meshV, delta_t, t_steps)
 E0 = ET[1]
