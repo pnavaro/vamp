@@ -18,11 +18,11 @@ v2_min = -6.0
 v1_max = 6.0
 v2_max = 6.0
 epsilon = 0.01
-k_x1 = 0.5
-k_x2 = 0.5
+k_x1 = 0.4
+k_x2 = 0.4
 
 delta_t = 0.1
-t_steps = 300
+t_steps = 200
 t_max = t_steps * delta_t
 t = range(0, stop=t_max, length=t_steps + 1)
 
@@ -49,23 +49,24 @@ phi_hat = initPhiHat(meshX, rho)
 E = initE(meshX, phi_hat)
 delta_t = t_max/t_steps
 
-@time EE, ET = vlasovAmpereSolve(f, E, meshX, meshV, delta_t, t_steps)
+@time EE, ET = vlasovAmpereSolveSL(f, E, meshX, meshV, delta_t, t_steps)
+#@time EE, ET = vlasovAmpereSolveFourier(f, E, meshX, meshV, delta_t, t_steps)
 E0 = ET[1]
 ETrel = abs.((ET .- E0))
 
-EE_plt = plot(t, EE,
+EE_plt = plot(t, EE./2.0,
               yaxis=:log,
-              title="Linear Landau damping 2D (k_x1, k_x2, eps.) = ($(k_x1), $(k_x2), $(epsilon))",
+              title="LLD(k_x1, k_x2, eps.) = ($(k_x1), $(k_x2), $(epsilon))",
               xlabel="time",
-              ylabel="Electrical Energy",
+              ylabel="E. Energy",
               markershape=:x)
       
 savefig(EE_plt, "Landau2DEE.pdf")
 ETrel_plt = plot(t[2:end], ETrel[2:end],
                  yaxis=:log,
-                 title="Linear Landau damping 2D (k_x1, k_x2, eps.) = ($(k_x1), $(k_x2), $(epsilon))",
+                 title="LLD(k_x1, k_x2, eps.) = ($(k_x1), $(k_x2), $(epsilon))",
                  xlabel="time",
-                 ylabel="Total Energy Error",
+                 ylabel="Total Energy Err.",
                  markershape=:x)
 
 
