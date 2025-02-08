@@ -4,6 +4,8 @@ include("vlasov-ampere2D.jl")
 
 FFTW.set_num_threads(Threads.nthreads())
 
+k_x1 = 0.4
+k_x2 = 0.4
 
 Nx1 = 32
 Nx2 = 32
@@ -11,15 +13,13 @@ Nv1 = 64
 Nv2 = 64
 x1_min = 0.0
 x2_min = 0.0
-x1_max = 4.0*pi
-x2_max = 4.0*pi
+x1_max = 4.0*pi/k_x1
+x2_max = 4.0*pi/k_x2
 v1_min = -6.0
 v2_min = -6.0
 v1_max = 6.0
 v2_max = 6.0
 epsilon = 0.01
-k_x1 = 0.4
-k_x2 = 0.4
 
 delta_t = 0.1
 t_steps = 200
